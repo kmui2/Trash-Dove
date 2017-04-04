@@ -29,5 +29,18 @@ class MouseControls {
             this.timeUpPressed = time;
             Body.setVelocity(sprite.body, createVector(sprite.body.velocity.x, -10));
         }
+         //switch sprite and edit controls using space
+    if (keyIsPressed) {
+        if (keyCode === 32 && timePressed + delay < time) {
+            if (controls === spriteControls) {
+                controls = editControls;
+                sprite.isStatic(true);
+            } else {
+                controls = spriteControls;
+                sprite.isStatic(false);
+            }
+            timePressed = time;
+        }
+    }
     }
 }

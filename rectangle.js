@@ -2,14 +2,20 @@ class Rectangle {
 
     constructor(x, y, w, h, options) {
 //        this.body = Bodies.rectangle(x, y, w + 5, h, options);
-        this.body = Bodies.rectangle(x, y, w, h , options);
-        this.x = x;
-        this.y = y;
+        this.body = Bodies.rectangle(x || 0, y || 0, w, h , options);
+        this.x = x || 0;
+        this.y = y || 0;
         this.w = w;
         this.h = h;
         World.add(world, this.body);
     }
-
+    
+    setPosition(x,y) {
+        
+      this.x = x;
+      this.y = y;  Body.setPosition(this.body,createVector(indexToCoordX(x),indexToCoordY(y)));
+    }
+    
     isOffScreen() {
         var pos = this.body.position;
         return (pos.y > height + 100);

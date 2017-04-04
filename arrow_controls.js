@@ -28,5 +28,18 @@ class ArrowControls {
             
             Body.applyForce(sprite.body, createVector(sprite.body.position.x,sprite.body.position.y), createVector(0,-0.01));
         }
+         //switch sprite and edit controls using space
+    if (keyIsPressed) {
+        if (keyCode === 32 && timePressed + delay < time) {
+            if (controls === spriteControls) {
+                controls = editControls;
+                sprite.body.isStatic = true;
+            } else {
+                controls = spriteControls;
+                sprite.body.isStatic = false;
+            }
+            timePressed = time;
+        }
+    }
     }
 }

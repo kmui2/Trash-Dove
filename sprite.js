@@ -12,6 +12,11 @@ class Sprite extends Rectangle{
 //        this.rectX = x || 150;
 //        this.rectY = y || 50;
 //        this.rectangle = new Rectangle(this.rectX, this.rectY, 10, 50);
+        this.x = x;
+        this.y = y;
+    }
+    isStatic(isStatic) {
+        Body.setStatic(this.body,isStatic);
     }
     render() {
         Body.setAngle(this.body, 0);

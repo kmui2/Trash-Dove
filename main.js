@@ -36,6 +36,7 @@ var worldLabels;
 var blockSize = 30;
 var loaded_indexes;
 
+
 //var listener;
 
 function preload() {
@@ -48,144 +49,106 @@ function preload() {
 }
 
 function setup() {
-    time = 0;
+    // creates Canvas
     createCanvas(1000, 700);
+    
+    //set timing parameters
+    time = 0;
+    delay = 10;
+    timePressed = -delay;
+    
+    //create engine and world
     engine = Engine.create();
     world = engine.world;
-//    initWorld = engine.world;
-//    world = initWorld.copy();
     Engine.run(engine);
+    
+    //initializes boundary
     enclosed = new Enclosed();
-    //    circleSystem = new CircleSystem(10, 50);
-    frameRate(30);
-    sprite = new Sprite(loaded_indexes.spriteIndex[0],loaded_indexes.spriteIndex[1]);
-    sprite.body.isStatic = true;
-
+    
+    // initializes sprite
+    sprite = new Sprite();
+    sprite.isStatic(true);
     spriteControls = new MouseControls(sprite);
-    //    spriteControls = new ArrowControls(sprite);
+    
+    // adds controls
+//        spriteControls = new ArrowControls(sprite);
     editControls = new EditControls();
     controls = editControls;
 
-    delay = 10;
-    timePressed = -delay;
-
+    // labels world indexes
     worldLabels = {};
-    brickSystem = new BrickSystem();
-    flagSystem = new FlagSystem();
+    
+    //create systems for various objects
+    brickSystem = new System('brick',Brick);
+    flagSystem = new System('flag',Flag);
 
-
+    // adds save world option and instructions
     input = createInput();
     input.position(20, height + 40);
     button = createButton('save world');
     button.position(input.x + input.width, height + 40);
     button.mousePressed(saveWorld);
-    
-    clearButton = createButton('clear world');
-    clearButton.position(width - 300, height + 40);
-    clearButton.mousePressed(setup);
-
     prompt = createElement('h2', 'Enter Name to Save World');
     prompt.position(20, height - 20);
     
+    // adds clear world option
+    clearButton = createButton('clear world');
+    clearButton.position(width - 300, height + 40);
+    clearButton.mousePressed(setup);
+    
+    // adds instructions
     instructions = createElement('h3', 'Use mouse to move and click to jump. Press Space to switch to edit mode and click to add bricks. Hold CTRL to remove bricks.');
     instructions.position(width -700, height - 20);
 
     // Win if touched flag
-    Events.on(engine, 'collisionStart', function (event) {
-        var pairs = event.pairs;
-            for (var i = 0, j = pairs.length; i != j; ++i) {
-                var pair = pairs[i];
-        
-                if (pair.bodyB.isSensor) {
-                    alert("You Win!")
-                }
-            }
-    });
+    Events.on(engine, 'collisionStart', victory);
     
-    if ("brickIndexes" in loaded_indexes) {
-    for (var i = 0; i < loaded_indexes.brickIndexes.length; i++) {
-        
-    }
-        for (var index of loaded_indexes.brickIndexes) {
-            brickSystem.addBrick(index[0],index[1]);
-        }
-    }
-    if ("flagIndexes" in loaded_indexes) {
-        for (var index of loaded_indexes.flagIndexes) {
-            flagSystem.addFlag(index[0],index[1]);
-        }
-    }
+    //read JSON and initialize world
+    initWorld(loaded_indexes);
 }
 
 
 function draw() {
     background(background_img);
 
-    //switch sprite and edit controls using space
-    if (keyIsPressed) {
-        if (keyCode === 32 && timePressed + delay < time) {
-            if (controls === spriteControls) {
-                controls = editControls;
-                sprite.body.isStatic = true;
-            } else {
-                controls = spriteControls;
-                sprite.body.isStatic = false;
-            }
-            timePressed = time;
-        }
-    }
     controls.runControls();
     fill(0, 102, 153);
     brickSystem.render();
     flagSystem.render();
     sprite.render();
     Engine.update(engine);
-    enclosed.show();
+//    enclosed.show();
 
     if (controls === editControls) {
-        for (var i = 0; i < coordToIndexX(width); i++) {
-            line(indexToCoordX(i), 0, indexToCoordX(i), height);
-            fill(255);
-        }
-
-        for (var i = 0; i < coordToIndexY(height); i++) {
-            line(0, indexToCoordY(i), width, indexToCoordY(i));
-        }
+        displayGrid();
     }
-    textSize(32);
-    text("(" + floor((mouseX / brickSystem.brickSize) + 0.5) + ", " + floor(((height - mouseY) / brickSystem.brickSize) + 0.5) + ")", 100, 100);
-    //    circleSystem.render();
-
-
+    displayIndexes();
     time++;
 }
 
-function saveWorld() {
-    var name = input.value();
-    prompt.html('Saved ' + name + '.json');
-    input.value('');
-    
-    var json = {
-            "brickIndexes": brickSystem.brickIndexes,
-            "flagIndexes": flagSystem.flagIndexes
-    };
 
-    saveJSON(json, name + ".json", true);
-}
-
-
-function coordToIndexX(x) {
-    return floor((x / blockSize) + 0.5);
-}
-
-function coordToIndexY(y) {
-    return floor(((y) / blockSize) + 0.5);
-}
-
-function indexToCoordX(x) {
-    return (x - 0.5) * blockSize;
-}
-
-function indexToCoordY(y) {
-    return height - ((y - 0.5) * blockSize);
-}
+//function keyPressed() {
+//    if (controls === spriteControls) {
+//        //right
+//        if (keyCode === RIGHT_ARROW) {
+//            //immediately stop and turn
+//            if (sprite.body.velocity.x < 0)
+//                Body.setVelocity(sprite.body, createVector(0, sprite.body.velocity.y))
+//            Body.applyForce(sprite.body, createVector(sprite.body.position.x,sprite.body.position.y+100), createVector(this.speed, 0));
+//        }
+//        //left
+//        if (keyCode === LEFT_ARROW) {
+//            //immediately stop and turn
+//            if (sprite.body.velocity.x > 0)
+//                Body.setVelocity(sprite.body, createVector(0, sprite.body.velocity.y))
+//            Body.applyForce(sprite.body, createVector(sprite.body.position.x,sprite.body.position.y+100), createVector(-this.speed, 0));
+//        }
+//        //jump
+//        if (keyCode == UP_ARROW && this.timeUpPressed + this.delay < time) {
+////            Body.setVelocity(sprite.body, createVector(sprite.body.velocity.x, -1));
+//            this.timeUpPressed = time;
+//            
+//            Body.applyForce(sprite.body, createVector(sprite.body.position.x,sprite.body.position.y), createVector(0,-0.01));
+//        }
+//    }
+//}

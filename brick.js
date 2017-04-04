@@ -1,7 +1,7 @@
 class Brick extends Rectangle{
     constructor(indexX, indexY, size) {
-        var coordX = indexX*size;
-        var coordY = height - indexY*size;
+        var coordX = indexToCoordX(indexX);
+        var coordY = indexToCoordY(indexY);
         
         var options = {
             friction: 0,
