@@ -40,6 +40,17 @@ var loaded_indexes;
 var worlds;
 var ref;
 var database;
+var currWorld;
+
+// Initialize Firebase
+var config = {
+    apiKey: "AIzaSyDb5Rk2-5YjfdsROZIEi8xI1HDu26OACwo",
+    authDomain: "trash-dove-worlds.firebaseapp.com",
+    databaseURL: "https://trash-dove-worlds.firebaseio.com",
+    projectId: "trash-dove-worlds",
+    storageBucket: "trash-dove-worlds.appspot.com",
+    messagingSenderId: "804214238414"
+};
 
 
 //var listener;
@@ -57,16 +68,7 @@ function preload() {
 function setup() {
     // creates Canvas
     createCanvas(1000, 700);
-
-    // Initialize Firebase
-    var config = {
-        apiKey: "AIzaSyDb5Rk2-5YjfdsROZIEi8xI1HDu26OACwo",
-        authDomain: "trash-dove-worlds.firebaseapp.com",
-        databaseURL: "https://trash-dove-worlds.firebaseio.com",
-        projectId: "trash-dove-worlds",
-        storageBucket: "trash-dove-worlds.appspot.com",
-        messagingSenderId: "804214238414"
-    };
+    
     firebase.initializeApp(config);
     console.log(firebase);
 
@@ -75,57 +77,10 @@ function setup() {
 
     ref.on('value', gotData, errData);
 
-    function gotData(data) {
-        console.log(data);
-        var worlds = data.val();
-        console.log(data.val());
-        var keys = Object.keys(worlds);
-        console.log(keys);
-        for (var i = 0; i < keys.length; i++) {
-            var k = keys[i];
-            console.log(k);
-            var name = worlds[k].name;
-            var indexes = worlds[k].indexes;
-//            console.log(name, indexes);
-            var li = createElement('li', name);
-            li.parent('worldslist');
-        }
-    }
-
-    function errData(err) {
-        console.log('Error!');
-        console.log(err);
-    }
-
-    //set timing parameters
-    time = 0;
-    delay = 10;
-    timePressed = -delay;
-
     //create engine and world
     engine = Engine.create();
     world = engine.world;
     Engine.run(engine);
-
-    //initializes boundary
-    enclosed = new Enclosed();
-
-    // initializes sprite
-    sprite = new Sprite();
-    sprite.isStatic(true);
-    spriteControls = new MouseControls(sprite);
-
-    // adds controls
-    //        spriteControls = new ArrowControls(sprite);
-    editControls = new EditControls();
-    controls = editControls;
-
-    // labels world indexes
-    worldLabels = {};
-
-    //create systems for various objects
-    brickSystem = new System('brick', Brick);
-    flagSystem = new System('flag', Flag);
 
     // adds save world option and instructions
     input = createInput();
@@ -135,21 +90,16 @@ function setup() {
     button.mousePressed(saveWorld);
     prompt = createElement('h2', 'Enter Name to Save World');
     prompt.position(20, height - 20);
-
+    
+    //read JSON and initialize world
+    currWorld = worlds.default;
+    initWorld(currWorld);
+    
     // adds clear world option
     clearButton = createButton('clear world');
     clearButton.position(width - 300, height + 40);
-    clearButton.mousePressed(setup);
+    clearButton.mousePressed(initWorld);
 
-    // adds instructions
-    instructions = createElement('h3', 'Use mouse to move and click to jump. Press Space to switch to edit mode and click to add bricks. Hold CTRL to remove bricks.');
-    instructions.position(width - 700, height - 20);
-
-    // Win if touched flag
-    Events.on(engine, 'collisionStart', victory);
-
-    //read JSON and initialize world
-    initWorld(worlds.default);
 }
 
 
@@ -169,6 +119,9 @@ function draw() {
     }
     displayIndexes();
     time++;
+
+    // debug
+    noLoop();
 }
 
 

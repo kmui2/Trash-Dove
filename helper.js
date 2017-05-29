@@ -53,8 +53,41 @@ function victory(event) {
     }
 }
 
-function initWorld(fileObj) {
+function initWorld(world) {
 
+    var fileObj = world || currWorld;
+
+    // adds instructions
+    instructions = createElement('h3', 'Use mouse to move and click to jump. Press Space to switch to edit mode and click to add bricks. Hold CTRL to remove bricks.');
+    instructions.position(width - 700, height - 20);
+
+    // Win if touched flag
+    Events.on(engine, 'collisionStart', victory);
+
+    //initializes boundary
+    enclosed = new Enclosed();
+
+    //set timing parameters
+    time = 0;
+    delay = 10;
+    timePressed = -delay;
+
+    // initializes sprite
+    sprite = new Sprite();
+    sprite.isStatic(true);
+    spriteControls = new MouseControls(sprite);
+
+    // adds controls
+    //        spriteControls = new ArrowControls(sprite);
+    editControls = new EditControls();
+    controls = editControls;
+
+    // labels world indexes
+    worldLabels = {};
+
+    //create systems for various objects
+    brickSystem = new System('brick', Brick);
+    flagSystem = new System('flag', Flag);
     worldName = fileObj.name;
 
     if ("spriteIndex" in fileObj.indexes) {
@@ -71,6 +104,29 @@ function initWorld(fileObj) {
             flagSystem.add(index[0], index[1]);
         }
     }
+}
+
+
+function gotData(data) {
+    console.log(data);
+    var worlds = data.val();
+    console.log(data.val());
+    var keys = Object.keys(worlds);
+    console.log(keys);
+    for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        console.log(k);
+        var name = worlds[k].name;
+        var indexes = worlds[k].indexes;
+        //            console.log(name, indexes);
+        var li = createElement('li', name);
+        li.parent('worldslist');
+    }
+}
+
+function errData(err) {
+    console.log('Error!');
+    console.log(err);
 }
 
 function displayGrid() {
